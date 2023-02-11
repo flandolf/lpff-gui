@@ -19,9 +19,7 @@
     "directories": {
       "output": "dist"
     },
-    "mac": {
-      "target": "dmg"
-    },
+    "publish": "always",
     "win": {
       "target": "nsis"
     },
