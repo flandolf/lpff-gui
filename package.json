@@ -1,0 +1,38 @@
+{
+  "name": "lpff-gui",
+  "version": "1.0.0",
+  "description": "",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "build": {
+    "productName": "lpff",
+    "appId": "xyz.dumpyy.lpff",
+    "directories": {
+      "output": "dist"
+    },
+    "mac": {
+      "target": "dmg"
+    },
+    "win": {
+      "target": "nsis"
+    },
+    "linux": {
+      "target": "appimage"
+
+    }
+  },
+  "dependencies": {
+    "@chrisoakman/chessboardjs": "^1.0.0",
+    "chess.js": "^1.0.0-beta.3"
+  },
+  "devDependencies": {
+    "electron": "^23.0.0",
+    "electron-builder": "^23.6.0"
+  }
+}

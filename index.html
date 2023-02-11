@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>LPFF - GUI</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.css"
+        integrity="sha384-q94+BZtLrkL1/ohfjR8c6L+A6qzNH9R2hBLwyoAfu3i/WCvQjzL2RQJ3uNHDISdU" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"
+        integrity="sha384-ZvpUoO/+PpLXR1lu4jmpXWu80pZlYUAfxl5NsBMWOEPSjUn/6Z/hRTt8+pR6L4N2"
+        crossorigin="anonymous"></script>
+
+    <script src="https://unpkg.com/@chrisoakman/chessboardjs@1.0.0/dist/chessboard-1.0.0.min.js"
+        integrity="sha384-8Vi8VHwn3vjQ9eUHUxex3JSN/NFqUg3QbPyX8kWyb93+8AC/pPWTzj+nHtbC5bxD"
+        crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/chess.js@0.12.0/chess.js"></script>
+</head>
+
+<body>
+    <h1>LPFF - GUI</h1>
+    <div class="actions">
+        <button id="copyFEN" onclick="copyFEN()">Copy FEN</button>
+        <button id="copyPGN" onclick="copyPGN()">Copy PGN</button>
+        <button id="newGame" onclick="window.location.reload()">New Game</button>
+        <button id="nextMove" onclick="nextMove()">Best Move</button>
+    </div>
+    <div class="wrapper">
+        <div id="board-container">
+            <h2 id="blackName">Black: </h2>
+            <div id="myBoard" style="width: 420px"></div>
+            <h2 id="whiteName">White: </h2>
+
+        </div>
+        <button onclick="board.flip()">Flip Board</button>
+        <div id="statusdiv">
+            <label>Bestmove:</label>
+            <div id="bestmove"></div>
+            <label>Status:</label>
+            <div id="status"></div>
+
+        </div>
+        <div id="fendiv">
+            <label>FEN:</label>
+            <div id="fen"></div>
+            <!--Load FEN Input-->
+            <label>Load FEN:</label>
+            <input type="text" id="fenInput" />
+            <button id="loadFEN" onclick="loadFEN()">Load FEN</button>
+        </div>
+        <div id="pgndiv">
+            <label>PGN:</label>
+            <div id="pgn"></div>
+            <!--Load PGN Input-->
+            <label>Load PGN:</label>
+            <input type="text" id="pgnInput" />
+            <button id="loadPGN" onclick="loadPGN()">Load PGN</button>
+        </div>
+    </div>
+
+    <script>
+        function copyToClipboard(text) {
+            const el = document.createElement('textarea');
+            el.value = text;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+        }
+        function copyFEN() {
+            copyToClipboard(document.querySelector("#fen").innerHTML);
+            document.querySelector("#copyFEN").innerHTML = "Copied FEN!";
+            setTimeout(() => {
+                document.querySelector("#copyFEN").innerHTML = "Copy FEN";
+            }, 1000);
+        }
+        function copyPGN() {
+            copyToClipboard(document.querySelector("#pgn").innerHTML);
+            document.querySelector("#copyPGN").innerHTML = "Copied PGN!";
+            setTimeout(() => {
+                document.querySelector("#copyPGN").innerHTML = "Copy PGN";
+            }, 1000);
+        }
+        function loadPGN() {
+            const pgn = document.querySelector("#pgnInput").value;
+            game.load_pgn(pgn);
+            board.position(game.fen());
+            updateStatus();
+        }
+        function loadFEN() {
+            const fen = document.querySelector("#fenInput").value;
+            game.load(fen);
+            board.position(game.fen());
+            updateStatus();
+        }
+        function nextMove(move = true) {
+            // web request to http://localhost:5000
+            const xhr = new XMLHttpRequest();
+            xhr.open("POST", "http://localhost:5000/next-move");
+            xhr.setRequestHeader("Content-Type", "application/json");
+            xhr.setRequestHeader("Access-Control-Allow-Origin", "*");
+            xhr.setRequestHeader("fen", game.fen());
+            xhr.send();
+            xhr.onload = () => {
+                console.log(xhr.responseText);
+                const bestmove = JSON.parse(xhr.responseText).san_next_move;
+                document.querySelector("#bestmove").innerHTML = bestmove;
+                if (move) {
+                    // highlight square
+                    const move = game.move(bestmove);
+                    board.position(game.fen());
+                    nextMove(false)
+                    updateStatus();
+                }
+            };
+        }
+
+        const game = new Chess();
+        const $status = document.querySelector("#status");
+        const $fen = document.querySelector("#fen");
+        const $pgn = document.querySelector("#pgn");
+        const $blackName = document.querySelector("#blackName");
+        const $whiteName = document.querySelector("#whiteName");
+
+        function onDragStart(source, piece, position, orientation) {
+            // do not pick up pieces if the game is over
+            if (game.game_over()) return false;
+
+            // only pick up pieces for the side to move
+            if (
+                (game.turn() === "w" && piece.search(/^b/) !== -1) ||
+                (game.turn() === "b" && piece.search(/^w/) !== -1)
+            ) {
+                return false;
+            }
+        }
+
+        const whiteCaptured = { 'p': 0, 'n': 0, 'b': 0, 'r': 0, 'q': 0 };
+        const blackCaptured = { 'p': 0, 'n': 0, 'b': 0, 'r': 0, 'q': 0 };
+
+        function onDrop(source, target) {
+            // see if the move is legal
+            const move = game.move({
+                from: source,
+                to: target,
+                promotion: "q", // NOTE: always promote to a queen for example simplicity
+            });
+
+            // illegal move
+            if (move === null) return "snapback";
+
+            // did they take a piece?
+            const capturedPiece = move.captured;
+            if (capturedPiece) {
+                const side = game.turn() === 'w' ? 'black' : 'white';
+                const pieceType = capturedPiece.toLowerCase();
+                if (side === 'white') {
+                    whiteCaptured[pieceType]++;
+                } else {
+                    blackCaptured[pieceType]++;
+                }
+                updateCapturedList();
+            }
+
+
+            nextMove(false)
+            updateStatus()
+        }
+
+        function updateCapturedList() {
+            const whiteCapturedList = Object.entries(whiteCaptured)
+                .map(([piece, count]) => count > 0 ? `${count}${piece.toUpperCase()}` : '')
+                .filter(str => str !== '')
+                .join(', ');
+            const blackCapturedList = Object.entries(blackCaptured)
+                .map(([piece, count]) => count > 0 ? `${count}${piece.toUpperCase()}` : '')
+                .filter(str => str !== '')
+                .join(', ');
+
+            // Update the UI to display the captured pieces
+            $whiteName.textContent = `White: ${whiteCapturedList}`;
+            $blackName.textContent = `Black: ${blackCapturedList}`;
+        }
+
+        // update the board position after the piece snap
+        // for castling, en passant, pawn promotion
+        function onSnapEnd() {
+            board.position(game.fen());
+        }
+
+        function updateStatus() {
+            let status = "";
+
+            let moveColor = "White";
+            if (game.turn() === "b") {
+                moveColor = "Black";
+            }
+
+            // checkmate?
+            if (game.in_checkmate()) {
+                status = "Game over, " + moveColor + " is in checkmate.";
+
+                // draw?
+            } else if (game.in_draw()) {
+                status = "Game over, drawn position";
+
+                // game still on
+            } else {
+                status = moveColor + " to move";
+
+                // check?
+                if (game.in_check()) {
+                    status += ", " + moveColor + " is in check";
+                }
+            }
+
+            $status.innerHTML = status;
+            $fen.innerHTML = game.fen();
+            $pgn.innerHTML = game.pgn();
+        }
+
+        const config = {
+            draggable: true,
+            position: "start",
+            onDragStart,
+            onDrop,
+            onSnapEnd,
+        };
+        const board = Chessboard("myBoard", config);
+
+        updateStatus();
+
+    </script>
+</body>
+
+
+</html>
