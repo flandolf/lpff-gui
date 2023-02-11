@@ -1,0 +1,30 @@
+name: Build Electron App
+
+on:
+  push:
+    branches:
+      - main
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Install Node.js and NPM
+      uses: actions/setup-node@v2
+      with:
+        node-version: '16.x'
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Package Electron App for Linux
+      run: npm run package-linux
+
+    - name: Package Electron App for Windows
+      run: npm run package-win
+
+    - name: Package Electron App for macOS
+      run: npm run package-mac
