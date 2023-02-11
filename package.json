@@ -6,8 +6,8 @@
   "scripts": {
     "start": "electron .",
     "build": "electron-builder build",
-    "package-linux": "electron-builder build --upload.toGithub --linux appimage",
-    "package-win": "electron-builder build --upload.toGithub --win --x64 --ia32",
+    "package-linux": "electron-builder build -p onTagOrDraft --linux appimage",
+    "package-win": "electron-builder build -p onTagOrDraft --win --x64 --ia32",
     "package-mac": "electron-builder build --mac --x64"
   },
   "keywords": [],
