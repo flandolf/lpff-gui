@@ -5,7 +5,7 @@ on:
     branches:
       - main
 env:
-  GH_SECRET: ${{ secrets.GH_PAT }}
+  GH_TOKEN: ${{ secrets.GH_PAT }}
 jobs:
   build:
     runs-on: ubuntu-latest
