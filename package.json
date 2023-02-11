@@ -9,10 +9,10 @@
     "package-linux": "electron-builder build --linux appimage",
     "package-win": "electron-builder build --win --x64 --ia32",
     "package-mac": "electron-builder build --mac --x64"
-  }
+  },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "andy",
+  "license": "MIT",
   "build": {
     "productName": "lpff",
     "appId": "xyz.dumpyy.lpff",
