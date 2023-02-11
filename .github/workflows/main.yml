@@ -26,17 +26,8 @@ jobs:
 
     - name: Package Electron App for Linux
       run: npm run package-linux
-
-    - name: Create Release
-      id: create_release
-      uses: ncipollo/release-action@v1.12.0
-      env:
-        GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+    - name: Upload AppImage
+      uses: actions/upload-artifact@v3.1.2
       with:
-        tag: "v1"
-
-    - name: Upload Linux AppImage
-      uses: actions/upload-artifact@v2
-      with:
-        name: lpff-Linux.AppImage
-        path: dist/lpff-1.0.0.AppImage
+        name: lpff.appimage
+        path: dist/lpff-1.0.0.appimage
