@@ -1,4 +1,4 @@
-name: Build Electron App
+name: Build Electron App Linux AppImage
 
 on:
   push:
@@ -20,19 +20,12 @@ jobs:
       uses: actions/setup-node@v2
       with:
         node-version: '16.x'
-    - name: Install Wine and Mono
-      uses: microsoft/setup-msbuild@v1.3.1
-      with:
-        wine: true
-        mono: latest
+
     - name: Install dependencies
       run: npm install
 
     - name: Package Electron App for Linux
       run: npm run package-linux
-
-    - name: Package Electron App for Windows
-      run: npm run package-win
 
     - name: Create Release
       id: create_release
@@ -47,11 +40,3 @@ jobs:
       with:
         name: lpff-Linux.AppImage
         path: dist/lpff-1.0.0.AppImage
-
-    - name: Upload Windows EXEs
-      uses: actions/upload-artifact@v2
-      with:
-        name: MyApp-Windows-EXEs
-        path: |
-          dist/lpff-1.0.0 Setup.exe
-          dist/lpff-1.0.0.exe
