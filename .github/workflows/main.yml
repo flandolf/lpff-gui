@@ -4,8 +4,10 @@ on:
   push:
     branches:
       - main
+
 env:
   GH_TOKEN: ${{ secrets.GH_PAT }}
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -18,7 +20,11 @@ jobs:
       uses: actions/setup-node@v2
       with:
         node-version: '16.x'
-
+    - name: Install Wine and Mono
+      uses: microsoft/setup-msbuild@v1.3.1
+      with:
+        wine: true
+        mono: latest
     - name: Install dependencies
       run: npm install
 
@@ -28,5 +34,24 @@ jobs:
     - name: Package Electron App for Windows
       run: npm run package-win
 
-    - name: Package Electron App for macOS
-      run: npm run package-mac
+    - name: Create Release
+      id: create_release
+      uses: ncipollo/release-action@v1.12.0
+      env:
+        GITHUB_TOKEN: ${{ secrets.GH_PAT }}
+      with:
+        tag: "v1"
+
+    - name: Upload Linux AppImage
+      uses: actions/upload-artifact@v2
+      with:
+        name: lpff-Linux.AppImage
+        path: dist/lpff-1.0.0.AppImage
+
+    - name: Upload Windows EXEs
+      uses: actions/upload-artifact@v2
+      with:
+        name: MyApp-Windows-EXEs
+        path: |
+          dist/lpff-1.0.0 Setup.exe
+          dist/lpff-1.0.0.exe
