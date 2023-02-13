@@ -5,9 +5,10 @@
 ![GitHub issues](https://img.shields.io/github/issues/flandolf/lpff-gui?style=for-the-badge)
 ![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/flandolf/lpff-gui/main.yml?style=for-the-badge)    
 Ludic Platform for Focused Finesse (Basic Chess UI in React)
+
+Live at https://chess.dumpy.gq!
 ## Build:
 ```yarn build```
-
 ## Dev Server:
 ```yarn dev```
 
