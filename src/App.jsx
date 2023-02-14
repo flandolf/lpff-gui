@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Chess } from "chess.js";
 import { Chessboard } from "react-chessboard";
 import { customPieces } from "./customPieces";
-import { Button, Input, notification } from "antd";
+import { Button, Input, Modal, notification } from "antd";
 const primaryColor = "#348ceb";
 const secondaryColor = "#f7f7f7";
 
@@ -24,6 +24,16 @@ const App = () => {
   const [FEN, setFEN] = useState(game.fen());
   const [showFEN, setShowFEN] = useState(false);
   const [showPGN, setShowPGN] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const showModal = () => {
+    setIsModalOpen(true);
+  };
+  const handleOk = () => {
+    setIsModalOpen(false);
+  };
+  const handleCancel = () => {
+    setIsModalOpen(false);
+  };
   const onDrop = (sourceSquare, targetSquare) => {
     // check if the move is legal
     const move = game.move({
@@ -46,14 +56,15 @@ const App = () => {
 
     if (game.isCheck()) {
       status = `${turn} is in check. ${turn}'s turn.`;
-      if (game.isCheckmate()) {
-        status = `${turn} is in checkmate.`;
-      } else if (game.isStalemate()) {
-        status = `Game is in stalemate.`;
-      } else if (game.isInsufficientMaterial()) {
-        status = `Game is in insufficient material.`;
-      }
-    } else {
+      
+    } else if (game.isCheckmate()) {
+      status = `${turn} is in checkmate.`;
+    } else if (game.isStalemate()) {
+      status = `Game is in stalemate.`;
+    } else if (game.isInsufficientMaterial()) {
+      status = `Game is in insufficient material.`;
+    }
+    else {
       status = `${turn}'s turn.`;
     }
 
@@ -67,7 +78,7 @@ const App = () => {
     setPGN(game.pgn());
     updateStatus();
     setShowFEN(false);
-    notification.open({
+    notification.success({
       message: "FEN Loaded",
       description: "The FEN has been loaded into the board.",
       duration: 2,
@@ -84,7 +95,7 @@ const App = () => {
     setGame(game);
     updateStatus();
     setShowPGN(false);
-    notification.open({
+    notification.success({
       message: "PGN Loaded",
       description: "The PGN has been loaded into the board.",
       duration: 2,
@@ -210,7 +221,7 @@ const App = () => {
           style={buttonStyle}
           onClick={() => {
             navigator.clipboard.writeText(PGN);
-            notification.open({
+            notification.success({
               message: "PGN Copied",
               description: "PGN has been copied to your clipboard.",
               placement: "bottomRight",
@@ -224,7 +235,7 @@ const App = () => {
           style={buttonStyle}
           onClick={() => {
             navigator.clipboard.writeText(FEN);
-            notification.open({
+            notification.success({
               message: "FEN Copied",
               description: "FEN has been copied to your clipboard.",
               placement: "bottomRight",
@@ -241,6 +252,46 @@ const App = () => {
       <p>
         <strong>FEN:</strong> {FEN}
       </p>
+      <footer
+        style={{
+          textAlign: "center",
+          display: "flex",
+          justifyContent: "center",
+          alignItems: "center",
+          flexDirection: "row",
+          margin: "5px",
+        }}
+      >
+        <p>
+          (c) 2023 Flandolf{" "}
+          <a
+            style={{
+              color: primaryColor,
+              textDecoration: "none",
+            }}
+            href="https://github.com/flandolf/lpff-gui"
+          >
+            Github{" "}
+          </a>
+          <a
+            style={{
+              color: primaryColor,
+              textDecoration: "none",
+              cursor: "pointer",
+            }}
+            onClick={() => {
+              setIsModalOpen(!isModalOpen);
+            }}
+          >
+            Credits
+          </a>
+        </p>
+      </footer>
+      <Modal title="Credits" open={isModalOpen} onOk={handleOk} onCancel={handleCancel}>
+        <p>Chessboard library: <a href='https://github.com/Clariity/react-chessboard'>react-chessboard</a></p>
+        <p>UI library: <a href='https://ant.design/'>antd</a></p>
+        <p>Chess library: <a href='https://github.com/jhlywa/chess.js'>chess.js</a></p>
+      </Modal>
     </div>
   );
 };

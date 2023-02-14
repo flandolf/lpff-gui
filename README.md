@@ -12,3 +12,7 @@ Live at https://chess.dumpy.gq!
 ## Dev Server:
 ```yarn dev```
 
+## Roadmap:
+- [x] UI
+- [] Stockfish integration
+- [] Desktop app
